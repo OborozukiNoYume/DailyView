@@ -1,0 +1,35 @@
+<template>
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <p>所有图片均来自必应搜索，仅供学习和个人使用</p>
+      <p class="footer-sub">DailyView &copy; {{ year }}</p>
+    </div>
+  </footer>
+</template>
+
+<script setup>
+const year = new Date().getFullYear()
+</script>
+
+<style scoped>
+.app-footer {
+  background: #fff;
+  border-top: 1px solid #e4e7ed;
+  padding: 24px;
+  text-align: center;
+  color: #909399;
+  font-size: 13px;
+  margin-top: auto;
+}
+
+.footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.footer-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #c0c4cc;
+}
+</style>
