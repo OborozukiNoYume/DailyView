@@ -58,7 +58,11 @@ async function fetchWallpapers() {
       page: currentPage.value,
       size: pageSize.value,
     }
-    if (props.filters.mkt) params.mkt = props.filters.mkt
+    if (props.filters.mkt) {
+      params.mkt = props.filters.mkt
+    } else {
+      params.dedup = true
+    }
     if (props.filters.year) params.year = props.filters.year
     if (props.filters.month) params.month = props.filters.month
     if (props.filters.keyword) params.keyword = props.filters.keyword
