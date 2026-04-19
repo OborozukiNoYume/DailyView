@@ -24,7 +24,7 @@
         v-model:page-size="pageSize"
         :total="total"
         :page-sizes="[12, 20, 30, 48]"
-        layout="total, sizes, prev, pager, next, jumper"
+        :layout="paginationLayout"
         background
         @size-change="onPageChange"
         @current-change="onPageChange"
@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
 import { getWallpapers } from '../api'
 import WallpaperCard from './WallpaperCard.vue'
@@ -50,6 +50,22 @@ const loading = ref(false)
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
+
+// 响应式分页布局：移动端简化分页组件
+const isMobile = ref(window.innerWidth <= 768)
+
+function onResize() {
+  isMobile.value = window.innerWidth <= 768
+}
+
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
+
+const paginationLayout = computed(() =>
+  isMobile.value
+    ? 'prev, pager, next'
+    : 'total, sizes, prev, pager, next, jumper',
+)
 
 async function fetchWallpapers() {
   loading.value = true

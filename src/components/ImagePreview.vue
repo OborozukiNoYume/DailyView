@@ -9,11 +9,18 @@
   >
     <div v-if="wallpaper" class="preview-content">
       <div class="preview-image-wrapper">
+        <div v-if="imageLoading" class="preview-image-loading">
+          <el-icon class="is-loading" :size="32"><Loading /></el-icon>
+          <span>加载中...</span>
+        </div>
         <img
           :src="previewUrl"
           :alt="wallpaper.title"
           class="preview-image"
+          :class="{ 'is-hidden': imageLoading }"
           @click="openFullSize"
+          @load="onImageLoad"
+          @error="onImageError"
         />
       </div>
       <div class="preview-details">
@@ -36,8 +43,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { Download } from '@element-plus/icons-vue'
+import { computed, ref, watch } from 'vue'
+import { Download, Loading } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { getImageUrl, getDownloadUrl } from '../api'
 
 const props = defineProps({
@@ -52,10 +60,25 @@ const visible = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
+const imageLoading = ref(true)
+
+// 切换壁纸时重置加载状态
+watch(() => props.wallpaper, () => {
+  imageLoading.value = true
+})
+
 const previewUrl = computed(() => {
   if (!props.wallpaper) return ''
   return getImageUrl(props.wallpaper.id, 'preview')
 })
+
+function onImageLoad() {
+  imageLoading.value = false
+}
+
+function onImageError() {
+  imageLoading.value = false
+}
 
 function formatSize(bytes) {
   if (!bytes) return '-'
@@ -79,6 +102,7 @@ function handleDownload() {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+  ElMessage.success('开始下载')
 }
 </script>
 
@@ -90,6 +114,7 @@ function handleDownload() {
 }
 
 .preview-image-wrapper {
+  position: relative;
   width: 100%;
   max-height: 60vh;
   overflow: hidden;
@@ -100,11 +125,28 @@ function handleDownload() {
   justify-content: center;
 }
 
+.preview-image-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #909399;
+  font-size: 14px;
+}
+
 .preview-image {
   max-width: 100%;
   max-height: 60vh;
   object-fit: contain;
   cursor: zoom-in;
+  transition: opacity 0.3s ease;
+}
+
+.preview-image.is-hidden {
+  opacity: 0;
 }
 
 .preview-title {
@@ -135,6 +177,12 @@ function handleDownload() {
   .preview-details {
     width: 300px;
     flex-shrink: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-image {
+    transition: none;
   }
 }
 </style>

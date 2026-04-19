@@ -2,14 +2,18 @@
   <header class="app-header">
     <div class="header-inner">
       <div class="header-left">
-        <h1 class="logo" @click="$emit('home')">
-          <el-icon :size="24"><PictureFilled /></el-icon>
-          DailyView
+        <h1 class="logo">
+          <a
+            href="#"
+            class="logo-link"
+            aria-label="DailyView 重置筛选"
+            @click.prevent="$emit('home')"
+          >
+            <el-icon :size="24"><PictureFilled /></el-icon>
+            DailyView
+          </a>
         </h1>
       </div>
-      <nav class="header-nav">
-        <el-link :underline="false" class="nav-link" @click="$emit('home')">首页</el-link>
-      </nav>
     </div>
   </header>
 </template>
@@ -46,27 +50,25 @@ defineEmits(['home'])
 .logo {
   font-size: 22px;
   font-weight: 700;
-  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
   color: #fff;
   user-select: none;
+  margin: 0;
 }
 
-.header-nav {
+.logo-link {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 8px;
+  color: #fff;
+  text-decoration: none;
 }
 
-.nav-link {
-  color: rgba(255, 255, 255, 0.85) !important;
-  font-size: 15px;
-  transition: color 0.2s;
-}
-
-.nav-link:hover {
-  color: #fff !important;
+.logo-link:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 </style>

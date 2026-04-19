@@ -17,3 +17,92 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Skip Link - 键盘用户跳过导航直达内容 */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  background: #6366f1;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 0 0 8px 8px;
+  z-index: 9999;
+  font-size: 14px;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* 回到顶部按钮 */
+.back-to-top {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 99;
+}
+
+.back-to-top:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+}
+
+.back-to-top:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .back-to-top {
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* 回到顶部按钮淡入淡出过渡 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 尊重用户的减少动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .skip-link {
+    transition: none;
+  }
+
+  .back-to-top {
+    transition: none;
+  }
+
+  .back-to-top:hover {
+    transform: none;
+  }
+
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: none;
+  }
+}

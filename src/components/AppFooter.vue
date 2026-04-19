@@ -30,6 +30,6 @@ const year = new Date().getFullYear()
 .footer-sub {
   margin-top: 4px;
   font-size: 12px;
-  color: #c0c4cc;
+  color: #909399;
 }
 </style>

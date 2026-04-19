@@ -1,9 +1,23 @@
 <template>
   <div class="filter-bar">
     <div class="filter-inner">
-      <div class="filter-controls">
+      <!-- 移动端筛选开关按钮 -->
+      <div class="filter-toggle-row">
+        <el-button
+          size="small"
+          class="filter-toggle-btn"
+          @click="filterExpanded = !filterExpanded"
+        >
+          筛选条件{{ activeFilterCount > 0 ? ' (' + activeFilterCount + ')' : '' }}
+          <el-icon class="toggle-icon" :class="{ 'is-expanded': filterExpanded }">
+            <ArrowDown />
+          </el-icon>
+        </el-button>
+      </div>
+
+      <div class="filter-controls" :class="{ 'is-expanded': filterExpanded }">
         <el-select
-          v-model="filters.mkt"
+          v-model="localFilters.mkt"
           placeholder="选择地区"
           clearable
           class="filter-select"
@@ -18,7 +32,7 @@
         </el-select>
 
         <el-select
-          v-model="filters.year"
+          v-model="localFilters.year"
           placeholder="选择年份"
           clearable
           class="filter-select"
@@ -33,10 +47,10 @@
         </el-select>
 
         <el-select
-          v-model="filters.month"
+          v-model="localFilters.month"
           placeholder="选择月份"
           clearable
-          :disabled="!filters.year"
+          :disabled="!localFilters.year"
           class="filter-select"
           @change="onFilterChange"
         >
@@ -49,8 +63,8 @@
         </el-select>
 
         <el-input
-          v-model="filters.keyword"
-          placeholder="关键词搜索（需搭配筛选条件）"
+          v-model="localFilters.keyword"
+          placeholder="关键词搜索"
           clearable
           :prefix-icon="Search"
           class="filter-search"
@@ -65,36 +79,36 @@
       <div v-if="hasActiveFilters" class="filter-tags">
         <span class="filter-tags-label">当前筛选：</span>
         <el-tag
-          v-if="filters.mkt"
+          v-if="localFilters.mkt"
           closable
+          class="filter-tag"
           @close="clearFilter('mkt')"
-          class="filter-tag"
         >
-          地区：{{ marketLabels[filters.mkt] || filters.mkt }}
+          地区：{{ marketLabels[localFilters.mkt] || localFilters.mkt }}
         </el-tag>
         <el-tag
-          v-if="filters.year"
+          v-if="localFilters.year"
           closable
+          class="filter-tag"
           @close="clearFilter('year')"
-          class="filter-tag"
         >
-          年份：{{ filters.year }}
+          年份：{{ localFilters.year }}
         </el-tag>
         <el-tag
-          v-if="filters.month"
+          v-if="localFilters.month"
           closable
+          class="filter-tag"
           @close="clearFilter('month')"
-          class="filter-tag"
         >
-          月份：{{ filters.month }}
+          月份：{{ localFilters.month }}
         </el-tag>
         <el-tag
-          v-if="filters.keyword"
+          v-if="localFilters.keyword"
           closable
-          @close="clearFilter('keyword')"
           class="filter-tag"
+          @close="clearFilter('keyword')"
         >
-          关键词：{{ filters.keyword }}
+          关键词：{{ localFilters.keyword }}
         </el-tag>
       </div>
     </div>
@@ -102,8 +116,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { Search } from '@element-plus/icons-vue'
+import { computed, reactive, ref, watch } from 'vue'
+import { Search, ArrowDown } from '@element-plus/icons-vue'
 
 const props = defineProps({
   filters: { type: Object, required: true },
@@ -128,35 +142,66 @@ const marketLabels = {
   'zh-CN': '中国',
 }
 
+// 使用本地副本避免直接修改 props
+const localFilters = reactive({
+  mkt: props.filters.mkt,
+  year: props.filters.year,
+  month: props.filters.month,
+  keyword: props.filters.keyword ?? '',
+})
+
+// 当父组件外部更新 filters（如重置）时同步到本地
+watch(
+  () => [props.filters.mkt, props.filters.year, props.filters.month, props.filters.keyword],
+  ([mkt, year, month, keyword]) => {
+    localFilters.mkt = mkt
+    localFilters.year = year
+    localFilters.month = month
+    localFilters.keyword = keyword ?? ''
+  },
+)
+
+const filterExpanded = ref(false)
+
 const availableMonths = computed(() => {
-  if (!props.filters.year) return []
-  return props.yearMonths[props.filters.year] || []
+  if (!localFilters.year) return []
+  return props.yearMonths[localFilters.year] || []
 })
 
 const hasActiveFilters = computed(() => {
-  return props.filters.mkt || props.filters.year || props.filters.month || props.filters.keyword
+  return localFilters.mkt || localFilters.year || localFilters.month || localFilters.keyword
+})
+
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (localFilters.mkt) count++
+  if (localFilters.year) count++
+  if (localFilters.month) count++
+  if (localFilters.keyword) count++
+  return count
 })
 
 function onYearChange() {
-  props.filters.month = null
+  localFilters.month = null
   onFilterChange()
 }
 
 function onFilterChange() {
-  emit('change', { ...props.filters })
+  emit('change', { ...localFilters })
 }
 
 function clearFilter(key) {
-  props.filters[key] = key === 'year' ? null : (key === 'month' ? null : null)
-  if (key === 'year') props.filters.month = null
+  localFilters[key] = key === 'keyword' ? '' : null
+  if (key === 'year') localFilters.month = null
   onFilterChange()
 }
 
 function onReset() {
-  props.filters.mkt = null
-  props.filters.year = null
-  props.filters.month = null
-  props.filters.keyword = ''
+  localFilters.mkt = null
+  localFilters.year = null
+  localFilters.month = null
+  localFilters.keyword = ''
+  filterExpanded.value = false
   emit('reset')
 }
 </script>
@@ -174,6 +219,24 @@ function onReset() {
   max-width: 1400px;
   margin: 0 auto;
   padding: 16px 24px;
+}
+
+/* 移动端筛选开关（桌面端隐藏） */
+.filter-toggle-row {
+  display: none;
+}
+
+.filter-toggle-btn {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.toggle-icon {
+  transition: transform 0.25s ease;
+}
+
+.toggle-icon.is-expanded {
+  transform: rotate(180deg);
 }
 
 .filter-controls {
@@ -209,14 +272,31 @@ function onReset() {
 }
 
 @media (max-width: 768px) {
+  /* 显示移动端筛选开关 */
+  .filter-toggle-row {
+    display: block;
+  }
+
+  /* 移动端默认收起筛选控件 */
+  .filter-controls:not(.is-expanded) {
+    display: none;
+  }
+
   .filter-controls {
     flex-direction: column;
     align-items: stretch;
+    margin-top: 12px;
   }
 
   .filter-select,
   .filter-search {
     width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle-icon {
+    transition: none;
   }
 }
 </style>
