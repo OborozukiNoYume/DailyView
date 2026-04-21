@@ -1,11 +1,12 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Top } from '@element-plus/icons-vue'
 import AppHeader from './components/AppHeader.vue'
+import HeroSection from './components/HeroSection.vue'
 import FilterBar from './components/FilterBar.vue'
 import WallpaperGrid from './components/WallpaperGrid.vue'
 import ImagePreview from './components/ImagePreview.vue'
 import AppFooter from './components/AppFooter.vue'
+import IconTop from './components/icons/IconTop.vue'
 import { getFilters } from './api'
 
 const filters = ref({
@@ -23,9 +24,9 @@ const filterOptions = ref({
 
 const previewVisible = ref(false)
 const previewWallpaper = ref(null)
+const heroWallpaper = ref(null)
 const gridRef = ref(null)
 
-// 回到顶部
 const showBackToTop = ref(false)
 
 function handleScroll() {
@@ -70,11 +71,23 @@ function openPreview(wallpaper) {
 function goHome() {
   onReset()
 }
+
+function onHeroPreview(wallpaper) {
+  openPreview(wallpaper)
+}
+
+// Receive first wallpaper from grid for hero
+function onGridDataLoaded(items) {
+  if (items && items.length > 0 && !heroWallpaper.value) {
+    heroWallpaper.value = items[0]
+  }
+}
 </script>
 
 <template>
   <a href="#main-content" class="skip-link">跳转到主要内容</a>
   <AppHeader @home="goHome" />
+  <HeroSection :wallpaper="heroWallpaper" @preview="onHeroPreview" />
   <FilterBar
     :filters="filters"
     :markets="filterOptions.markets"
@@ -84,7 +97,7 @@ function goHome() {
     @reset="onReset"
   />
   <main id="main-content">
-    <WallpaperGrid ref="gridRef" :filters="filters" @preview="openPreview" />
+    <WallpaperGrid ref="gridRef" :filters="filters" @preview="openPreview" @data-loaded="onGridDataLoaded" />
   </main>
   <ImagePreview v-model="previewVisible" :wallpaper="previewWallpaper" />
   <AppFooter />
@@ -95,7 +108,7 @@ function goHome() {
       aria-label="回到顶部"
       @click="scrollToTop"
     >
-      <el-icon :size="20"><Top /></el-icon>
+      <IconTop />
     </button>
   </transition>
 </template>

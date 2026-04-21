@@ -1,123 +1,153 @@
 <template>
   <div class="filter-bar">
     <div class="filter-inner">
-      <!-- 移动端筛选开关按钮 -->
+      <!-- Mobile toggle -->
       <div class="filter-toggle-row">
-        <el-button
-          size="small"
-          class="filter-toggle-btn"
-          @click="filterExpanded = !filterExpanded"
-        >
+        <button class="btn btn-ghost filter-toggle-btn" @click="filterExpanded = !filterExpanded">
+          <IconFilter class="btn-icon-svg" />
           筛选条件{{ activeFilterCount > 0 ? ' (' + activeFilterCount + ')' : '' }}
-          <el-icon class="toggle-icon" :class="{ 'is-expanded': filterExpanded }">
-            <ArrowDown />
-          </el-icon>
-        </el-button>
+          <IconArrowDown class="toggle-chevron" :class="{ 'is-expanded': filterExpanded }" />
+        </button>
       </div>
 
       <div class="filter-controls" :class="{ 'is-expanded': filterExpanded }">
-        <el-select
-          v-model="localFilters.mkt"
-          placeholder="选择地区"
-          clearable
-          class="filter-select"
-          @change="onFilterChange"
-        >
-          <el-option
-            v-for="m in markets"
-            :key="m"
-            :label="marketLabels[m] || m"
-            :value="m"
+        <!-- Region select -->
+        <div class="custom-select" ref="mktSelectRef">
+          <button
+            class="select-trigger"
+            :class="{ 'has-value': localFilters.mkt }"
+            @click="toggleDropdown('mkt')"
+          >
+            <span class="select-value">
+              {{ localFilters.mkt ? (marketLabels[localFilters.mkt] || localFilters.mkt) : '选择地区' }}
+            </span>
+            <IconArrowDown class="select-arrow" />
+          </button>
+          <transition name="dropdown">
+            <div v-if="openDropdown === 'mkt'" class="select-dropdown">
+              <div class="select-option" @click="selectOption('mkt', null)">全部地区</div>
+              <div
+                v-for="m in markets"
+                :key="m"
+                class="select-option"
+                :class="{ 'is-active': localFilters.mkt === m }"
+                @click="selectOption('mkt', m)"
+              >
+                {{ marketLabels[m] || m }}
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <!-- Year select -->
+        <div class="custom-select" ref="yearSelectRef">
+          <button
+            class="select-trigger"
+            :class="{ 'has-value': localFilters.year }"
+            @click="toggleDropdown('year')"
+          >
+            <span class="select-value">
+              {{ localFilters.year ? localFilters.year + ' 年' : '选择年份' }}
+            </span>
+            <IconArrowDown class="select-arrow" />
+          </button>
+          <transition name="dropdown">
+            <div v-if="openDropdown === 'year'" class="select-dropdown">
+              <div class="select-option" @click="selectOption('year', null)">全部年份</div>
+              <div
+                v-for="y in years"
+                :key="y"
+                class="select-option"
+                :class="{ 'is-active': localFilters.year === y }"
+                @click="selectOption('year', y)"
+              >
+                {{ y }} 年
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <!-- Month select -->
+        <div class="custom-select" ref="monthSelectRef">
+          <button
+            class="select-trigger"
+            :class="{ 'has-value': localFilters.month }"
+            :disabled="!localFilters.year"
+            @click="toggleDropdown('month')"
+          >
+            <span class="select-value">
+              {{ localFilters.month ? localFilters.month + ' 月' : '选择月份' }}
+            </span>
+            <IconArrowDown class="select-arrow" />
+          </button>
+          <transition name="dropdown">
+            <div v-if="openDropdown === 'month'" class="select-dropdown">
+              <div class="select-option" @click="selectOption('month', null)">全部月份</div>
+              <div
+                v-for="m in availableMonths"
+                :key="m"
+                class="select-option"
+                :class="{ 'is-active': localFilters.month === m }"
+                @click="selectOption('month', m)"
+              >
+                {{ m }} 月
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <!-- Search input -->
+        <div class="search-input-wrapper">
+          <IconSearch class="search-icon" />
+          <input
+            v-model="localFilters.keyword"
+            type="text"
+            class="search-input"
+            placeholder="关键词搜索"
+            @keyup.enter="onFilterChange"
           />
-        </el-select>
+          <button v-if="localFilters.keyword" class="search-clear" @click="clearKeyword">
+            <IconClose class="clear-icon" />
+          </button>
+        </div>
 
-        <el-select
-          v-model="localFilters.year"
-          placeholder="选择年份"
-          clearable
-          class="filter-select"
-          @change="onYearChange"
-        >
-          <el-option
-            v-for="y in years"
-            :key="y"
-            :label="y + ' 年'"
-            :value="y"
-          />
-        </el-select>
-
-        <el-select
-          v-model="localFilters.month"
-          placeholder="选择月份"
-          clearable
-          :disabled="!localFilters.year"
-          class="filter-select"
-          @change="onFilterChange"
-        >
-          <el-option
-            v-for="m in availableMonths"
-            :key="m"
-            :label="m + ' 月'"
-            :value="m"
-          />
-        </el-select>
-
-        <el-input
-          v-model="localFilters.keyword"
-          placeholder="关键词搜索"
-          clearable
-          :prefix-icon="Search"
-          class="filter-search"
-          @keyup.enter="onFilterChange"
-          @clear="onFilterChange"
-        />
-
-        <el-button type="primary" :icon="Search" @click="onFilterChange">搜索</el-button>
-        <el-button @click="onReset">重置</el-button>
+        <button class="btn btn-primary btn-sm" @click="onFilterChange">
+          <IconSearch class="btn-icon-svg" />
+          搜索
+        </button>
+        <button class="btn btn-ghost btn-sm" @click="onReset">重置</button>
       </div>
 
+      <!-- Active filter tags -->
       <div v-if="hasActiveFilters" class="filter-tags">
         <span class="filter-tags-label">当前筛选：</span>
-        <el-tag
-          v-if="localFilters.mkt"
-          closable
-          class="filter-tag"
-          @close="clearFilter('mkt')"
-        >
+        <span v-if="localFilters.mkt" class="filter-tag">
           地区：{{ marketLabels[localFilters.mkt] || localFilters.mkt }}
-        </el-tag>
-        <el-tag
-          v-if="localFilters.year"
-          closable
-          class="filter-tag"
-          @close="clearFilter('year')"
-        >
+          <button class="tag-close" @click="clearFilter('mkt')"><IconClose class="tag-close-icon" /></button>
+        </span>
+        <span v-if="localFilters.year" class="filter-tag">
           年份：{{ localFilters.year }}
-        </el-tag>
-        <el-tag
-          v-if="localFilters.month"
-          closable
-          class="filter-tag"
-          @close="clearFilter('month')"
-        >
+          <button class="tag-close" @click="clearFilter('year')"><IconClose class="tag-close-icon" /></button>
+        </span>
+        <span v-if="localFilters.month" class="filter-tag">
           月份：{{ localFilters.month }}
-        </el-tag>
-        <el-tag
-          v-if="localFilters.keyword"
-          closable
-          class="filter-tag"
-          @close="clearFilter('keyword')"
-        >
+          <button class="tag-close" @click="clearFilter('month')"><IconClose class="tag-close-icon" /></button>
+        </span>
+        <span v-if="localFilters.keyword" class="filter-tag">
           关键词：{{ localFilters.keyword }}
-        </el-tag>
+          <button class="tag-close" @click="clearFilter('keyword')"><IconClose class="tag-close-icon" /></button>
+        </span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
-import { Search, ArrowDown } from '@element-plus/icons-vue'
+import { computed, reactive, ref, watch, onMounted, onUnmounted } from 'vue'
+import IconSearch from './icons/IconSearch.vue'
+import IconArrowDown from './icons/IconArrowDown.vue'
+import IconClose from './icons/IconClose.vue'
+import IconFilter from './icons/IconFilter.vue'
 
 const props = defineProps({
   filters: { type: Object, required: true },
@@ -142,7 +172,6 @@ const marketLabels = {
   'zh-CN': '中国',
 }
 
-// 使用本地副本避免直接修改 props
 const localFilters = reactive({
   mkt: props.filters.mkt,
   year: props.filters.year,
@@ -150,7 +179,6 @@ const localFilters = reactive({
   keyword: props.filters.keyword ?? '',
 })
 
-// 当父组件外部更新 filters（如重置）时同步到本地
 watch(
   () => [props.filters.mkt, props.filters.year, props.filters.month, props.filters.keyword],
   ([mkt, year, month, keyword]) => {
@@ -162,6 +190,10 @@ watch(
 )
 
 const filterExpanded = ref(false)
+const openDropdown = ref(null)
+const mktSelectRef = ref(null)
+const yearSelectRef = ref(null)
+const monthSelectRef = ref(null)
 
 const availableMonths = computed(() => {
   if (!localFilters.year) return []
@@ -181,8 +213,19 @@ const activeFilterCount = computed(() => {
   return count
 })
 
-function onYearChange() {
-  localFilters.month = null
+function toggleDropdown(name) {
+  openDropdown.value = openDropdown.value === name ? null : name
+}
+
+function selectOption(key, value) {
+  localFilters[key] = value
+  if (key === 'year') localFilters.month = null
+  openDropdown.value = null
+  onFilterChange()
+}
+
+function clearKeyword() {
+  localFilters.keyword = ''
   onFilterChange()
 }
 
@@ -202,26 +245,40 @@ function onReset() {
   localFilters.month = null
   localFilters.keyword = ''
   filterExpanded.value = false
+  openDropdown.value = null
   emit('reset')
 }
+
+// Close dropdown on outside click
+function onClickOutside(e) {
+  if (openDropdown.value === null) return
+  const refs = [mktSelectRef.value, yearSelectRef.value, monthSelectRef.value]
+  const inside = refs.some(r => r && r.contains(e.target))
+  if (!inside) openDropdown.value = null
+}
+
+onMounted(() => document.addEventListener('click', onClickOutside))
+onUnmounted(() => document.removeEventListener('click', onClickOutside))
 </script>
 
 <style scoped>
 .filter-bar {
-  background: #fff;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--glass-border);
   position: sticky;
-  top: 60px;
+  top: var(--header-height);
   z-index: 99;
 }
 
 .filter-inner {
-  max-width: 1400px;
+  max-width: var(--max-width);
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 14px 24px;
 }
 
-/* 移动端筛选开关（桌面端隐藏） */
+/* Mobile toggle */
 .filter-toggle-row {
   display: none;
 }
@@ -231,29 +288,187 @@ function onReset() {
   justify-content: space-between;
 }
 
-.toggle-icon {
+.btn-icon-svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.toggle-chevron {
+  width: 14px;
+  height: 14px;
   transition: transform 0.25s ease;
 }
 
-.toggle-icon.is-expanded {
+.toggle-chevron.is-expanded {
   transform: rotate(180deg);
 }
 
 .filter-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
-.filter-select {
-  width: 150px;
+/* Custom Select */
+.custom-select {
+  position: relative;
 }
 
-.filter-search {
-  width: 280px;
+.select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 140px;
+  height: 36px;
+  padding: 0 12px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  white-space: nowrap;
 }
 
+.select-trigger:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+}
+
+.select-trigger.has-value .select-value {
+  color: var(--text-primary);
+}
+
+.select-trigger:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.select-arrow {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.select-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 100%;
+  max-height: 240px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border-hover);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-elevated);
+  z-index: 100;
+  padding: 4px;
+}
+
+.select-option {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.select-option:hover {
+  background: var(--glass-bg-hover);
+  color: var(--text-primary);
+}
+
+.select-option.is-active {
+  background: var(--accent-glow);
+  color: var(--accent-bright);
+}
+
+/* Dropdown transition */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.2s var(--ease-out);
+}
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* Search input */
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 260px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 32px 0 34px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  outline: none;
+}
+
+.search-clear {
+  position: absolute;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition: color var(--duration-fast);
+}
+
+.search-clear:hover {
+  color: var(--text-primary);
+}
+
+.clear-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Filter tags */
 .filter-tags {
   display: flex;
   align-items: center;
@@ -264,20 +479,46 @@ function onReset() {
 
 .filter-tags-label {
   font-size: 13px;
-  color: #909399;
+  color: var(--text-muted);
 }
 
 .filter-tag {
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  color: var(--accent-bright);
+}
+
+.tag-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  color: var(--accent);
+  transition: background var(--duration-fast);
+}
+
+.tag-close:hover {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+.tag-close-icon {
+  width: 10px;
+  height: 10px;
 }
 
 @media (max-width: 768px) {
-  /* 显示移动端筛选开关 */
   .filter-toggle-row {
     display: block;
   }
 
-  /* 移动端默认收起筛选控件 */
   .filter-controls:not(.is-expanded) {
     display: none;
   }
@@ -288,15 +529,21 @@ function onReset() {
     margin-top: 12px;
   }
 
-  .filter-select,
-  .filter-search {
+  .custom-select {
     width: 100%;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .toggle-icon {
-    transition: none;
+  .select-trigger {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .search-input-wrapper {
+    width: 100%;
+  }
+
+  .filter-inner {
+    padding: 12px 16px;
   }
 }
 </style>

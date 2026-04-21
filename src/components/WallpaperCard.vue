@@ -15,11 +15,11 @@
         class="card-image"
         @error="onImageError"
       />
-      <!-- 始终可见的底部标题栏（触屏设备也能看到） -->
+      <!-- Always-visible title bar -->
       <div class="card-title-bar">
         <span class="card-title-text">{{ wallpaper.title }}</span>
       </div>
-      <!-- 桌面端 hover/focus 覆盖层：完整信息 + 操作按钮 -->
+      <!-- Desktop hover overlay -->
       <div class="card-overlay">
         <div class="card-info">
           <h3 class="card-title">{{ wallpaper.title }}</h3>
@@ -27,13 +27,9 @@
           <span class="card-date">{{ wallpaper.date }}</span>
         </div>
         <div class="card-actions" @click.stop>
-          <el-button
-            type="success"
-            circle
-            :icon="Download"
-            aria-label="下载壁纸"
-            @click="handleDownload"
-          />
+          <button class="btn btn-icon btn-ghost download-btn" aria-label="下载壁纸" @click="handleDownload">
+            <IconDownload class="action-icon" />
+          </button>
         </div>
       </div>
     </div>
@@ -42,9 +38,9 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Download } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import IconDownload from './icons/IconDownload.vue'
 import { getImageUrl, getDownloadUrl } from '../api'
+import { showToast } from '../utils/toast'
 
 const props = defineProps({
   wallpaper: { type: Object, required: true },
@@ -62,33 +58,41 @@ function handleDownload() {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
-  ElMessage.success('开始下载')
+  showToast('开始下载')
 }
 
 function onImageError(e) {
-  e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225"><rect fill="%23e4e7ed" width="400" height="225"/><text fill="%23909399" font-size="14" x="50%" y="50%" text-anchor="middle" dy=".3em">加载失败</text></svg>'
+  e.target.src = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225"><rect fill="#e2e8f0" width="400" height="225"/><text fill="#94a3b8" font-size="14" x="50%" y="50%" text-anchor="middle" dy=".3em">加载失败</text></svg>'
+  )
 }
 </script>
 
 <style scoped>
 .wallpaper-card {
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
 }
 
 .wallpaper-card:hover,
 .wallpaper-card:focus-visible {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow:
+    var(--shadow-card),
+    0 0 30px rgba(99, 102, 241, 0.08);
 }
 
 .wallpaper-card:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4), 0 8px 24px rgba(99, 102, 241, 0.2);
+  box-shadow:
+    0 0 0 3px var(--accent-glow),
+    var(--shadow-card);
 }
 
 .card-image-wrapper {
@@ -105,42 +109,44 @@ function onImageError(e) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s var(--ease-out);
 }
 
 .wallpaper-card:hover .card-image {
-  transform: scale(1.05);
+  transform: scale(1.06);
 }
 
-/* 始终可见的标题栏 */
+/* Always-visible title bar */
 .card-title-bar {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
-  padding: 24px 12px 10px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.65));
+  padding: 28px 12px 10px;
   z-index: 1;
 }
 
 .card-title-text {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.92);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
 }
 
-/* 桌面端 hover 覆盖层 */
+/* Desktop hover overlay */
 .card-overlay {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   padding: 16px;
   opacity: 0;
-  transition: opacity 0.25s ease;
+  transition: opacity var(--duration-normal) ease;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -152,7 +158,6 @@ function onImageError(e) {
   opacity: 1;
 }
 
-/* 触屏设备隐藏 hover 覆盖层，使用始终可见的标题栏 */
 @media (hover: none) {
   .card-overlay {
     display: none;
@@ -165,7 +170,7 @@ function onImageError(e) {
 }
 
 .card-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: #fff;
   margin-bottom: 4px;
@@ -176,7 +181,7 @@ function onImageError(e) {
 
 .card-copyright {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.75);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -185,7 +190,7 @@ function onImageError(e) {
 
 .card-date {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .card-actions {
@@ -195,13 +200,16 @@ function onImageError(e) {
   flex-shrink: 0;
 }
 
-/* 确保触控目标足够大 */
-.card-actions :deep(.el-button) {
+.download-btn {
   min-width: 36px;
   min-height: 36px;
 }
 
-/* 尊重用户的减少动效偏好 */
+.action-icon {
+  width: 18px;
+  height: 18px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wallpaper-card {
     transition: none;
