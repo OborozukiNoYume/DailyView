@@ -219,7 +219,7 @@ onUnmounted(() => {
   max-height: 55vh;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  background: rgba(0, 0, 0, 0.3);
+  background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -283,15 +283,17 @@ onUnmounted(() => {
 
 .info-label {
   display: block;
-  font-size: 11px;
+  font-size: 14px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-bottom: 4px;
 }
 
 .info-value {
-  font-size: 13px;
+  font-size: 16px;
+  font-weight: 500;
   color: var(--text-primary);
   word-break: break-word;
 }
