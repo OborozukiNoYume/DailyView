@@ -148,6 +148,7 @@ import IconSearch from './icons/IconSearch.vue'
 import IconArrowDown from './icons/IconArrowDown.vue'
 import IconClose from './icons/IconClose.vue'
 import IconFilter from './icons/IconFilter.vue'
+import { marketLabels } from '../utils/market'
 
 const props = defineProps({
   filters: { type: Object, required: true },
@@ -157,20 +158,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['change', 'reset'])
-
-const marketLabels = {
-  'de-DE': '德国',
-  'en-CA': '加拿大',
-  'en-GB': '英国',
-  'en-IN': '印度',
-  'en-US': '美国',
-  'es-ES': '西班牙',
-  'fr-FR': '法国',
-  'it-IT': '意大利',
-  'ja-JP': '日本',
-  'pt-BR': '巴西',
-  'zh-CN': '中国',
-}
 
 const localFilters = reactive({
   mkt: props.filters.mkt,

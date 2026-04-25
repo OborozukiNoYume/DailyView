@@ -33,7 +33,17 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">版权</span>
-                  <span class="info-value">{{ wallpaper.copyright }}</span>
+                  <span class="info-value">
+                    {{ wallpaper.copyright }}
+                    <a
+                      v-if="wallpaper.copyrightlink"
+                      :href="wallpaper.copyrightlink"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="copyright-link"
+                      @click.stop
+                    >了解更多</a>
+                  </span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">分辨率</span>
@@ -41,7 +51,7 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">地区</span>
-                  <span class="info-value">{{ wallpaper.mkt }}</span>
+                  <span class="info-value">{{ marketDisplay }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">大小</span>
@@ -67,6 +77,7 @@ import IconDownload from './icons/IconDownload.vue'
 import IconLoading from './icons/IconLoading.vue'
 import { getImageUrl, getDownloadUrl } from '../api'
 import { showToast } from '../utils/toast'
+import { formatMarkets } from '../utils/market'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -89,6 +100,11 @@ watch(() => props.wallpaper, () => {
 const previewUrl = computed(() => {
   if (!props.wallpaper) return ''
   return getImageUrl(props.wallpaper.id, 'preview')
+})
+
+const marketDisplay = computed(() => {
+  if (!props.wallpaper) return ''
+  return formatMarkets(props.wallpaper.mkt)
 })
 
 function onImageLoad() {
@@ -296,6 +312,21 @@ onUnmounted(() => {
   font-weight: 500;
   color: var(--text-primary);
   word-break: break-word;
+}
+
+.copyright-link {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+  transition: opacity var(--duration-fast);
+}
+
+.copyright-link:hover {
+  opacity: 0.75;
+  text-decoration: underline;
 }
 
 .btn-icon-svg {

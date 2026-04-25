@@ -7,7 +7,7 @@ import WallpaperGrid from './components/WallpaperGrid.vue'
 import ImagePreview from './components/ImagePreview.vue'
 import AppFooter from './components/AppFooter.vue'
 import IconTop from './components/icons/IconTop.vue'
-import { getFilters } from './api'
+import { getFilters, getRandomWallpaper } from './api'
 
 const filters = ref({
   mkt: null,
@@ -39,15 +39,20 @@ function scrollToTop() {
 
 onMounted(async () => {
   window.addEventListener('scroll', handleScroll, { passive: true })
-  try {
-    const data = await getFilters()
+  // 并行加载筛选选项和随机壁纸
+  const [filtersResult] = await Promise.allSettled([
+    getFilters(),
+    loadRandomHero(),
+  ])
+  if (filtersResult.status === 'fulfilled') {
+    const data = filtersResult.value
     filterOptions.value = {
       markets: data.markets || [],
       years: data.years || [],
       yearMonths: data.year_months || {},
     }
-  } catch (e) {
-    console.error('Failed to load filters:', e)
+  } else {
+    console.error('Failed to load filters:', filtersResult.reason)
   }
 })
 
@@ -70,6 +75,16 @@ function openPreview(wallpaper) {
 
 function goHome() {
   onReset()
+  loadRandomHero()
+}
+
+async function loadRandomHero() {
+  try {
+    const data = await getRandomWallpaper()
+    if (data) heroWallpaper.value = data
+  } catch (e) {
+    console.error('Failed to load random wallpaper:', e)
+  }
 }
 
 function onHeroPreview(wallpaper) {

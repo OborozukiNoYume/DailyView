@@ -16,7 +16,7 @@
       <p class="hero-copyright">{{ wallpaper.copyright }}</p>
       <div class="hero-meta">
         <span class="hero-date">{{ wallpaper.date }}</span>
-        <span v-if="wallpaper.mkt" class="hero-region">{{ wallpaper.mkt }}</span>
+        <span v-if="marketDisplay" class="hero-region">{{ marketDisplay }}</span>
       </div>
       <div class="hero-actions">
         <button class="btn btn-primary" @click="$emit('preview', wallpaper)">
@@ -39,6 +39,7 @@ import IconImage from './icons/IconImage.vue'
 import IconDownload from './icons/IconDownload.vue'
 import { getImageUrl, getDownloadUrl } from '../api'
 import { showToast } from '../utils/toast'
+import { formatMarkets } from '../utils/market'
 
 const props = defineProps({
   wallpaper: { type: Object, default: null },
@@ -49,6 +50,11 @@ defineEmits(['preview'])
 const imageUrl = computed(() => {
   if (!props.wallpaper) return ''
   return getImageUrl(props.wallpaper.id, 'preview')
+})
+
+const marketDisplay = computed(() => {
+  if (!props.wallpaper) return ''
+  return formatMarkets(props.wallpaper.mkt)
 })
 
 function handleDownload() {
