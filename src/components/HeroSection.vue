@@ -11,13 +11,8 @@
       <div class="hero-bg-overlay"></div>
     </div>
     <div class="hero-content">
-      <div class="hero-badge">今日精选</div>
       <h1 class="hero-title">{{ wallpaper.title }}</h1>
       <p class="hero-copyright">{{ wallpaper.copyright }}</p>
-      <div class="hero-meta">
-        <span class="hero-date">{{ wallpaper.date }}</span>
-        <span v-if="marketDisplay" class="hero-region">{{ marketDisplay }}</span>
-      </div>
       <div class="hero-actions">
         <button class="btn btn-primary" @click="$emit('preview', wallpaper)">
           <IconImage class="btn-icon-svg" />
@@ -39,7 +34,6 @@ import IconImage from './icons/IconImage.vue'
 import IconDownload from './icons/IconDownload.vue'
 import { getImageUrl, getDownloadUrl } from '../api'
 import { showToast } from '../utils/toast'
-import { formatMarkets } from '../utils/market'
 
 const props = defineProps({
   wallpaper: { type: Object, default: null },
@@ -52,10 +46,6 @@ const imageUrl = computed(() => {
   return getImageUrl(props.wallpaper.id, 'preview')
 })
 
-const marketDisplay = computed(() => {
-  if (!props.wallpaper) return ''
-  return formatMarkets(props.wallpaper.mkt)
-})
 
 function handleDownload() {
   if (!props.wallpaper) return
@@ -115,22 +105,6 @@ function onBgError(e) {
   padding: 0 24px 24px;
 }
 
-.hero-badge {
-  display: inline-block;
-  padding: 4px 14px;
-  border-radius: var(--radius-full);
-  background: var(--glass-bg-strong);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent-bright);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-bottom: 14px;
-}
-
 .hero-title {
   font-size: 36px;
   font-weight: 700;
@@ -146,22 +120,6 @@ function onBgError(e) {
   color: rgba(255, 255, 255, 0.75);
   max-width: 500px;
   margin-bottom: 10px;
-}
-
-.hero-meta {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.hero-date,
-.hero-region {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.70);
-  padding: 3px 10px;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.10);
 }
 
 .hero-actions {
