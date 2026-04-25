@@ -112,7 +112,7 @@ function onBgError(e) {
   max-width: var(--max-width);
   width: 100%;
   margin: 0 auto;
-  padding: 0 24px 40px;
+  padding: 0 24px 24px;
 }
 
 .hero-badge {
@@ -177,14 +177,7 @@ function onBgError(e) {
 }
 
 .hero-bottom-fade {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: linear-gradient(transparent, var(--bg-base));
-  z-index: 1;
-  pointer-events: none;
+  display: none;
 }
 
 @media (max-width: 768px) {
@@ -198,7 +191,7 @@ function onBgError(e) {
   }
 
   .hero-content {
-    padding: 0 16px 32px;
+    padding: 0 16px 18px;
   }
 }
 </style>
